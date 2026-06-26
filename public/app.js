@@ -984,6 +984,7 @@ function formatMsg(text) {
 </pre>`;
         }
     );
+    if (html) html = String(html);
 
     return html;
 }
