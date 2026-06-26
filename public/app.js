@@ -492,7 +492,7 @@ window.newChat = function () {
 
     }
 
-    if (window.innerWidth < 768) {
+    if (window.innerWidth < 969) {
 
         toggleSidebar();
 
@@ -626,7 +626,7 @@ window.switchChat = function(id){
 
     renderMessages();
 
-    if(window.innerWidth<768){
+    if(window.innerWidth<969){
 
         toggleSidebar();
 
@@ -1046,6 +1046,8 @@ window.copyCode=function(e,id){
 // =======================================
 
 window.toggleSidebar=function(){
+
+    if(window.innerWidth>=969) return;
 
     document
         .getElementById("chatSidebar")
