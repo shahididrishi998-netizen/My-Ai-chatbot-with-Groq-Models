@@ -143,10 +143,31 @@
         </aside>
 
         <main class="chat-main">
+            <!-- CHAT HEADER - isi ko replace kar -->
             <header class="chat-header">
                 <button onclick="toggleSidebar()" class="icon-btn">☰</button>
                 <div>Velice AI</div>
-                <button onclick="toggleTheme()" class="icon-btn">🌓</button>
+                <div class="header-actions">
+                    <div class="profile-dropdown">
+                        <button class="profile-btn" onclick="toggleProfileMenu()">
+                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff"
+                                alt="Profile">
+                        </button>
+                        <div class="profile-menu" id="profileMenu">
+                            <div class="profile-info">
+                                <div class="profile-name" id="profileName">User</div>
+                                <div class="profile-email" id="profileEmail">user@email.com</div>
+                            </div>
+                            <div class="menu-divider"></div>
+                            <button class="menu-item" onclick="changeFont()">
+                                <span>🔤</span> Change Font
+                            </button>
+                            <button class="menu-item" onclick="logout()">
+                                <span>🚪</span> Logout
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </header>
 
             <div class="messages-container" id="messages"></div>
