@@ -955,10 +955,10 @@ function formatMsg(text) {
     if (!text) return "";
 
     // Markdown -> HTML
-    let html = marked.parse(text, {
-        breaks: true,
-        gfm: true
-    });
+    text = text
+      .replace(/</g,"&lt;")
+      .replace(/>/g,"&gt;");
+    let html = marked.parse(text);
 
     // Safe HTML
     html = DOMPurify.sanitize(html);
@@ -974,7 +974,7 @@ function formatMsg(text) {
                 .replace(/&gt;/g, ">")
                 .replace(/&amp;/g, "&");
 
-            const safe = code
+            const safeCode = code
               .replace(/&/g,"&amp;")
               .replace(/</g,"&lt;")
               .replace(/>/g,"&gt;");
@@ -985,7 +985,7 @@ function formatMsg(text) {
     <span>${lang || "text"}</span>
     <button onclick="copyCode(event,'${id}')">Copy</button>
 </div>
-<code id="${id}">${decoded}</code>
+<code id="${id}">${safeCode}</code>
 </pre>`;
         }
     );
