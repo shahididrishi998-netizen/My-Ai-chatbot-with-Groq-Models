@@ -8,14 +8,25 @@ const { OAuth2Client } = require('google-auth-library');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+// ══ CORS + SECURITY HEADERS ══
+app.use(cors({
+  origin: '*',
+  credentials: true
+}));
+
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+  next();
+});
+
 app.use(express.json({ limit: '10mb' }));
 
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
 
 const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
 // ══ MONGODB CONNECT ══
 if (!process.env.MONGODB_URI) {
   console.error('❌ MONGODB_URI missing in environment variables');
@@ -141,11 +152,19 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ══ GOOGLE LOGIN ══
+// ══ GOOGLE LOGIN ══
 app.post('/api/auth/google', async (req, res) => {
   const { credential } = req.body;
 
+  console.log('Google Auth Request:', { credential: credential ? 'Present' : 'Missing' });
+
   if (!credential) {
     return res.status(400).json({ error: 'No credential provided' });
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    console.error('GOOGLE_CLIENT_ID missing in env');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   try {
@@ -155,6 +174,8 @@ app.post('/api/auth/google', async (req, res) => {
     });
 
     const payload = ticket.getPayload();
+    console.log('Google payload:', payload.email);
+    
     const { sub: googleId, email, name, picture } = payload;
 
     let user = await User.findOne({ email });
@@ -167,25 +188,31 @@ app.post('/api/auth/google', async (req, res) => {
         avatar: picture,
         password: null
       });
+      console.log('New user created:', email);
     } else if (!user.googleId) {
       user.googleId = googleId;
       user.avatar = picture;
       await user.save();
+      console.log('Existing user updated:', email);
     }
 
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
-      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar },
+      user: { 
+        id: user._id, 
+        name: user.name, 
+        email: user.email, 
+        avatar: user.avatar 
+      },
       token
     });
 
   } catch (err) {
-    console.error('Google Auth Error:', err);
-    res.status(400).json({ error: 'Google authentication failed' });
+    console.error('Google Auth Error:', err.message);
+    res.status(400).json({ error: 'Google authentication failed: ' + err.message });
   }
 });
-
 // ══ CHAT ROUTES ══
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { message, image, chatId } = req.body;
