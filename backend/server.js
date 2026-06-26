@@ -4,19 +4,27 @@ const path = require('path');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+const { OAuth2Client } = require('google-auth-library');
+require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const publicPath = path.join(__dirname, '..', 'public');
 app.use(express.static(publicPath));
 
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 // ══ MONGODB CONNECT ══
+if (!process.env.MONGODB_URI) {
+  console.error('❌ MONGODB_URI missing in environment variables');
+  process.exit(1);
+}
+
 mongoose.connect(process.env.MONGODB_URI)
- .then(() => console.log('✅ MongoDB Connected'))
- .catch(err => {
+.then(() => console.log('✅ MongoDB Connected'))
+.catch(err => {
     console.error('❌ MongoDB Error:', err.message);
     process.exit(1);
   });
@@ -25,8 +33,9 @@ mongoose.connect(process.env.MONGODB_URI)
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: { type: String },
   avatar: { type: String, default: '' },
+  googleId: { type: String, default: null },
   createdAt: { type: Date, default: Date.now }
 });
 
@@ -70,23 +79,19 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 
   try {
-    // Check if user exists
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await User.create({
       name,
       email,
       password: hashedPassword
     });
 
-    // Generate token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
     res.json({
@@ -113,6 +118,10 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'User not found' });
     }
 
+    if (!user.password) {
+      return res.status(400).json({ error: 'Use Google login for this account' });
+    }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Invalid password' });
@@ -131,14 +140,53 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
+// ══ GOOGLE LOGIN ══
 app.post('/api/auth/google', async (req, res) => {
-  // Google OAuth ka logic baad me add karna
-  // Abhi mock response
-  res.json({ token: 'google-auth-pending' });
+  const { credential } = req.body;
+
+  if (!credential) {
+    return res.status(400).json({ error: 'No credential provided' });
+  }
+
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = await User.create({
+        name,
+        email,
+        googleId,
+        avatar: picture,
+        password: null
+      });
+    } else if (!user.googleId) {
+      user.googleId = googleId;
+      user.avatar = picture;
+      await user.save();
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    res.json({
+      user: { id: user._id, name: user.name, email: user.email, avatar: user.avatar },
+      token
+    });
+
+  } catch (err) {
+    console.error('Google Auth Error:', err);
+    res.status(400).json({ error: 'Google authentication failed' });
+  }
 });
 
 // ══ CHAT ROUTES ══
-// ══ CHAT ROUTE - AB LOGIN REQUIRED ══
 app.post('/api/chat', authMiddleware, async (req, res) => {
   const { message, image, chatId } = req.body;
 
@@ -174,7 +222,6 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
 
     const aiResponse = data.choices[0].message.content;
 
-    // DB me hamesha save karo kyuki login required hai
     let chat;
     if (chatId) {
       chat = await Chat.findById(chatId);
@@ -202,23 +249,23 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
   }
 });
 
-// Get user chats
 app.get('/api/chats', authMiddleware, async (req, res) => {
   try {
     const chats = await Chat.find({ userId: req.userId })
-     .select('title createdAt messages')
-     .sort({ createdAt: -1 });
+   .select('title createdAt messages')
+   .sort({ createdAt: -1 });
     res.json(chats);
   } catch (err) {
     res.status(500).json({ error: 'Failed to fetch chats' });
   }
 });
+
 // ══ DELETE SINGLE CHAT ══
 app.delete('/api/chats/:chatId', authMiddleware, async (req, res) => {
   try {
     const chat = await Chat.findOneAndDelete({
       _id: req.params.chatId,
-      userId: req.userId // Security: sirf apna chat delete kar sake
+      userId: req.userId
     });
 
     if (!chat) {
@@ -232,26 +279,14 @@ app.delete('/api/chats/:chatId', authMiddleware, async (req, res) => {
   }
 });
 
-// ══ DELETE ALL CHATS ══
-app.delete('/api/chats', authMiddleware, async (req, res) => {
-  try {
-    await Chat.deleteMany({ userId: req.userId });
-    res.json({ message: 'All chats deleted successfully' });
-  } catch (err) {
-    console.error('Delete All Error:', err);
-    res.status(500).json({ error: 'Failed to delete chats' });
-  }
-});
 // ══ FRONTEND ROUTES ══
 app.get('/', (req, res) => {
   res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-
 // ══ START ══
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`✅ Server: http://localhost:${PORT}`);
-  console.log(`🍃 MongoDB: ${process.env.MONGODB_URI}`);
+  console.log(`🍃 MongoDB: Connected`);
 });
-
