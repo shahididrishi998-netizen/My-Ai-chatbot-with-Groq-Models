@@ -141,7 +141,6 @@ function updateProfileUI(){
         "";
 
     const avatar =
-        user.avatar ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=8B5CF6&color=fff`;
 
     document.getElementById("profileName").textContent =
