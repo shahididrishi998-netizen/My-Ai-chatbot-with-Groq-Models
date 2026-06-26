@@ -708,52 +708,104 @@ body {
   border: 1px solid var(--border);
 }
 
+/* ══ CODE BLOCKS - PRO LEVEL ══ */
 .message-bubble pre {
-  background: #1e1e1e;
-  border-radius: 8px;
+  background: #1e1e2e;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
   margin: 1rem 0;
-  overflow-x: auto;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .code-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 1rem;
-  background: #2d2d2d;
-  border-radius: 8px 8px 0 0;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #2d2d44, #1e1e2e);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 .code-header span {
   font-size: 0.75rem;
-  color: #a1a1aa;
+  color: #8b5cf6;
   text-transform: uppercase;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.code-header span::before {
+  content: '●';
+  color: #10b981;
+  font-size: 10px;
 }
 
 .code-header button {
-  padding: 0.25rem 0.75rem;
-  background: var(--accent);
-  color: white;
-  border: none;
-  border-radius: 4px;
+  padding: 0.4rem 0.9rem;
+  background: rgba(139, 92, 246, 0.2);
+  color: #c4b5fd;
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.75rem;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
-.message-bubble code {
+.code-header button:hover {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+  transform: scale(1.05);
+}
+
+.code-header button:active {
+  transform: scale(0.95);
+}
+
+.message-bubble pre code {
   display: block;
-  padding: 1rem;
+  padding: 1.25rem;
   color: #e4e4e7;
-  font-family: 'Courier New', monospace;
-  font-size: 0.875rem;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-x: auto;
+  background: transparent;
 }
 
+.message-bubble pre code::-webkit-scrollbar {
+  height: 8px;
+}
+
+.message-bubble pre code::-webkit-scrollbar-track {
+  background: #1e1e2e;
+}
+
+.message-bubble pre code::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 4px;
+}
+
+.message-bubble pre code::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}
+
+/* Inline Code */
 .message-bubble code:not(pre code) {
   display: inline;
-  padding: 0.2rem 0.4rem;
-  background: rgba(139, 92, 246, 0.2);
-  border-radius: 4px;
-  color: var(--accent);
+  padding: 0.2rem 0.5rem;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 5px;
+  color: #c4b5fd;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
 .input-container {
