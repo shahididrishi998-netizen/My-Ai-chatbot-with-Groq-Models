@@ -30,13 +30,19 @@
   box-sizing: border-box;
 }
 
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
 body {
   font-family: 'Inter', sans-serif;
   background: var(--bg-primary);
   color: var(--text-primary);
-  overflow-x: hidden;
-  max-width: 100dvw;
-  max-height: 100dvh;
   transition: background 0.3s, color 0.3s;
 }
 
@@ -444,6 +450,8 @@ body {
 /* ══ CHAT PAGE ══ */
 #chatPage.active {
   display: flex;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 .chat-sidebar {
@@ -452,8 +460,9 @@ body {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   transition: transform 0.3s;
+  flex-shrink: 0;
 }
 
 .sidebar-header {
@@ -650,8 +659,9 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   min-width: 0;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -662,6 +672,7 @@ body {
   align-items: center;
   justify-content: space-between;
   background: var(--bg-secondary);
+  flex-shrink: 0;
 }
 
 .icon-btn {
@@ -683,7 +694,11 @@ body {
 .messages-container {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  overflow-x: hidden;
+  padding: 1rem;
+  width: 100%;
+  min-height: 0; /* Critical for mobile */
+  -webkit-overflow-scrolling: touch; /* Smooth scroll iOS */
 }
 
 .message {
@@ -816,6 +831,8 @@ body {
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--border);
   background: var(--bg-secondary);
+  flex-shrink: 0;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
 }
 
 .input-wrapper {
@@ -886,6 +903,10 @@ body {
 
 /* ══ RESPONSIVE ══ */
 @media (max-width: 768px) {
+  html, body {
+    height: 100vh;
+    height: 100dvh;
+  }
   .hero-grid {
     grid-template-columns: 1fr;
   }
@@ -993,8 +1014,32 @@ body {
     font-size: 0.8rem;
     padding: 1rem;
   }
+  #chatPage.active {
+    height: 100vh;
+    height: 100dvh;
+  }
+  
+  .chat-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    height: 100dvh;
+    transform: translateX(-100%);
+    z-index: 100;
+    box-shadow: 0 0 40px var(--shadow);
+  }
+  
+  .chat-sidebar.open {
+    transform: translateX(0);
+  }
   
   .messages-container {
-    padding: 1rem 0.75rem;
+    padding: 0.75rem;
   }
+  
+  .input-container {
+    padding: 0.75rem;
+  }
+
 }
