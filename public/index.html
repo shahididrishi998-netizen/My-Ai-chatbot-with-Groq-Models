@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -89,13 +88,10 @@
     </div>
 
     <!-- AUTH -->
-    <!-- AUTH -->
     <div id="authPage" class="page">
         <div class="auth-wrapper">
             <div class="auth-card">
-                <button class="back-btn" onclick="showPage('landingPage')"
-                    style="position:absolute;top:20px;left:20px;background:none;border:none;color:var(--text-primary);cursor:pointer;font-size:24px;padding:8px;">←</button>
-
+                <button class="back-btn" onclick="showPage('landingPage')">←</button>
                 <div class="auth-header">
                     <div class="auth-logo">✦</div>
                     <h2 class="auth-title">Welcome to Velice</h2>
@@ -123,16 +119,23 @@
                 <div class="divider">or</div>
                 <div class="google-auth">
                     <div id="g_id_onload"
-                        data-client_id="950532206667-k4rgn6u0ia6l8moh52s7f3t7ecrqv9go.apps.googleusercontent.com"
-                        data-callback="handleGoogleLogin" data-auto_prompt="false">
+                         data-client_id="276271803154-ksn2heakd93bcsdr0c2plebeasgkm1s8.apps.googleusercontent.com"
+                         data-callback="handleGoogleLogin"
+                         data-auto_prompt="false">
                     </div>
-                    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
-                        data-text="continue_with" data-shape="rectangular" data-logo_alignment="left">
+                    <div class="g_id_signin"
+                         data-type="standard"
+                         data-size="large"
+                         data-theme="outline"
+                         data-text="continue_with"
+                         data-shape="rectangular"
+                         data-logo_alignment="left">
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
     <!-- CHAT -->
     <div id="chatPage" class="page">
         <aside class="chat-sidebar" id="chatSidebar">
@@ -140,34 +143,40 @@
                 <button class="new-chat-btn" onclick="newChat()">+ New Chat</button>
             </div>
             <div class="chat-list" id="chatList"></div>
+            <div class="sidebar-footer">
+                <div class="profile-dropdown">
+                    <button class="profile-btn-sidebar" onclick="toggleProfileMenu()">
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff" alt="Profile">
+                        <div class="profile-info-sidebar">
+                            <div class="profile-name-sidebar" id="profileName">User</div>
+                        </div>
+                    </button>
+                    <div class="profile-menu" id="profileMenu">
+                        <div class="profile-info">
+                            <div class="profile-name" id="profileNameFull">User</div>
+                            <div class="profile-email" id="profileEmail">user@email.com</div>
+                        </div>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item" onclick="changeFont()">
+                            <span>🔤</span> Change Font
+                        </button>
+                        <button class="menu-item" onclick="toggleTheme()">
+                            <span>🌓</span> Toggle Theme
+                        </button>
+                        <div class="menu-divider"></div>
+                        <button class="menu-item" onclick="logout()">
+                            <span>🚪</span> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
         </aside>
 
         <main class="chat-main">
-            <!-- CHAT HEADER - isi ko replace kar -->
             <header class="chat-header">
                 <button onclick="toggleSidebar()" class="icon-btn">☰</button>
                 <div>Velice AI</div>
-                <div class="header-actions">
-                    <div class="profile-dropdown">
-                        <button class="profile-btn" onclick="toggleProfileMenu()">
-                            <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff"
-                                alt="Profile">
-                        </button>
-                        <div class="profile-menu" id="profileMenu">
-                            <div class="profile-info">
-                                <div class="profile-name" id="profileName">User</div>
-                                <div class="profile-email" id="profileEmail">user@email.com</div>
-                            </div>
-                            <div class="menu-divider"></div>
-                            <button class="menu-item" onclick="changeFont()">
-                                <span>🔤</span> Change Font
-                            </button>
-                            <button class="menu-item" onclick="logout()">
-                                <span>🚪</span> Logout
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <div style="width:36px"></div>
             </header>
 
             <div class="messages-container" id="messages"></div>
@@ -184,5 +193,4 @@
     <script type="module" src="three-bg.js"></script>
     <script src="app.js"></script>
 </body>
-
 </html>
