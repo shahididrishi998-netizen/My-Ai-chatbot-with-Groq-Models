@@ -995,24 +995,19 @@ function formatMsg(text) {
 
 window.copyCode=function(e,id){
 
-    const code=document
-        .getElementById(id)
-        .innerText;
+    const code = document.querySelector(`#${id}`);
 
-    navigator.clipboard
-        .writeText(code)
-        .then(()=>{
+    if (!code) return;
 
-            e.target.innerText="Copied";
+    navigator.clipboard.writeText(code.textContent);
 
-            setTimeout(()=>{
+    event.target.textContent = "Copied";
 
-                e.target.innerText="Copy";
+    setTimeout(() => {
 
-            },2000);
+        event.target.textContent = "Copy";
 
-        });
-
+    }, 1500);
 }
 
 // =======================================
