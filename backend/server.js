@@ -247,9 +247,6 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(publicPath, 'index.html'));
 });
 
-app.get('/*', (req, res) => {
-  res.sendFile(path.join(publicPath, 'index.html'));
-});
 
 // ══ START ══
 const PORT = process.env.PORT || 3000;
