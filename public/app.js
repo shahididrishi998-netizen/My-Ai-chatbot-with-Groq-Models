@@ -951,68 +951,41 @@ document.addEventListener("DOMContentLoaded",()=>{
 // =======================================
 // FORMAT MESSAGE
 // =======================================
+function formatMsg(text) {
+    if (!text) return "";
 
-function formatMsg(text){
-
-    if(!text) return "";
-
-    let html=String(text)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;");
-
-    // Code Blocks
-    html=html.replace(/```(\w+)?\n([\s\S]*?)```/g,(m,lang,code)=>{
-
-        const id="code_"+Math.random().toString(36).slice(2);
-
-        return `
-<pre>
-<div class="code-header">
-<span>${lang||"text"}</span>
-<button onclick="copyCode(event,'${id}')">
-Copy
-</button>
-</div>
-
-<code id="${id}">
-${code.trim()}
-</code>
-
-</pre>
-`;
-
+    // Markdown -> HTML
+    let html = marked.parse(text, {
+        breaks: true,
+        gfm: true
     });
 
-    // Inline Code
-    html=html.replace(
-        /`([^`]+)`/g,
-        "<code>$1</code>"
-    );
+    // Safe HTML
+    html = DOMPurify.sanitize(html);
 
-    // Bold
-    html=html.replace(
-        /\*\*(.*?)\*\*/g,
-        "<strong>$1</strong>"
-    );
+    // Copy button for code blocks
+    html = html.replace(
+        /<pre><code(?: class="language-([^"]+)")?>([\s\S]*?)<\/code><\/pre>/g,
+        (_, lang, code) => {
+            const id = "code_" + Math.random().toString(36).slice(2);
 
-    // Italic
-    html=html.replace(
-        /\*(.*?)\*/g,
-        "<em>$1</em>"
-    );
+            const decoded = code
+                .replace(/&lt;/g, "<")
+                .replace(/&gt;/g, ">")
+                .replace(/&amp;/g, "&");
 
-    // Links
-    html=html.replace(
-        /(https?:\/\/[^\s]+)/g,
-        `<a href="$1" target="_blank">$1</a>`
+            return `
+<pre>
+<div class="code-header">
+    <span>${lang || "text"}</span>
+    <button onclick="copyCode(event,'${id}')">Copy</button>
+</div>
+<code id="${id}">${decoded}</code>
+</pre>`;
+        }
     );
-
-    // New Line
-    // html=html.replace(/\n/g,"\n");
 
     return html;
-
 }
 
 // =======================================
