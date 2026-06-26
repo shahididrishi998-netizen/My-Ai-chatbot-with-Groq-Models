@@ -141,7 +141,7 @@ function updateProfileUI(){
         "";
 
     const avatar =
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=8B5CF6&color=fff`;
+        `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(username)}`;
 
     document.getElementById("profileName").textContent =
         username;
