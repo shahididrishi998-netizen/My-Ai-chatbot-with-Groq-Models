@@ -1191,3 +1191,31 @@
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;
 }
+
+.auth-card {
+  position: relative;
+}
+
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 24px;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.back-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateX(-2px);
+}
+
+.auth-header {
+  padding-top: 20px;
+}

@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Velice AI - Lightspeed AI Chat</title>
     <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
     }
-  }
-  </script>
+    </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="index.css">
 </head>
@@ -89,9 +89,13 @@
     </div>
 
     <!-- AUTH -->
+    <!-- AUTH -->
     <div id="authPage" class="page">
         <div class="auth-wrapper">
             <div class="auth-card">
+                <button class="back-btn" onclick="showPage('landingPage')"
+                    style="position:absolute;top:20px;left:20px;background:none;border:none;color:var(--text-primary);cursor:pointer;font-size:24px;padding:8px;">←</button>
+
                 <div class="auth-header">
                     <div class="auth-logo">✦</div>
                     <h2 class="auth-title">Welcome to Velice</h2>
@@ -118,15 +122,17 @@
 
                 <div class="divider">or</div>
                 <div class="google-auth">
-                    <div id="g_id_onload" data-client_id="TERA_GOOGLE_CLIENT_ID" data-callback="handleGoogleLogin">
+                    <div id="g_id_onload"
+                        data-client_id="276271803154-ksn2heakd93bcsdr0c2plebeasgkm1s8.apps.googleusercontent.com"
+                        data-callback="handleGoogleLogin" data-auto_prompt="false">
                     </div>
-                    <div class="g_id_signin" data-type="standard"></div>
+                    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+                        data-text="continue_with" data-shape="rectangular" data-logo_alignment="left">
+                    </div>
                 </div>
-                <script src="https://accounts.google.com/gsi/client" async defer></script>
             </div>
         </div>
     </div>
-
     <!-- CHAT -->
     <div id="chatPage" class="page">
         <aside class="chat-sidebar" id="chatSidebar">
@@ -138,404 +144,23 @@
 
         <main class="chat-main">
             <header class="chat-header">
-                <button onclick="toggleSidebar()"
-                    style="background:none;border:none;color:var(--text-primary);cursor:pointer;">☰</button>
+                <button onclick="toggleSidebar()" class="icon-btn">☰</button>
                 <div>Velice AI</div>
-                <button onclick="toggleTheme()"
-                    style="background:none;border:none;color:var(--text-primary);cursor:pointer;">🌓</button>
+                <button onclick="toggleTheme()" class="icon-btn">🌓</button>
             </header>
 
             <div class="messages-container" id="messages"></div>
 
             <div class="input-container">
                 <div class="input-wrapper">
-                    <textarea id="msgInput" class="chat-input" placeholder="Message Velice..." rows="1"
-                        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+                    <textarea id="msgInput" class="chat-input" placeholder="Message Velice..." rows="1"></textarea>
                     <button class="send-button" onclick="sendMessage()">↑</button>
                 </div>
             </div>
         </main>
     </div>
 
-    <script type="module">
-        import * as THREE from 'three';
-
-        // 3D Scene
-        const canvas = document.getElementById('bgCanvas');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-        const geometry = new THREE.TorusKnotGeometry(1.2, 0.35, 200, 32);
-        const material = new THREE.MeshPhysicalMaterial({
-            color: 0x8B5CF6,
-            metalness: 0.9,
-            roughness: 0.1,
-            clearcoat: 1,
-            clearcoatRoughness: 0.1,
-            emissive: 0x7C3AED,
-            emissiveIntensity: 0.3
-        });
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-
-        const light1 = new THREE.PointLight(0x8B5CF6, 150);
-        light1.position.set(5, 5, 5);
-        scene.add(light1);
-        const light2 = new THREE.PointLight(0x06B6D4, 100);
-        light2.position.set(-5, -5, 5);
-        scene.add(light2);
-
-        camera.position.z = 4;
-
-        let mx = 0, my = 0;
-        document.addEventListener('mousemove', e => {
-            mx = (e.clientX / window.innerWidth - 0.5) * 2;
-            my = (e.clientY / window.innerHeight - 0.5) * 2;
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            mesh.rotation.x += 0.003;
-            mesh.rotation.y += 0.004;
-            camera.position.x += (mx * 2 - camera.position.x) * 0.05;
-            camera.position.y += (-my * 2 - camera.position.y) * 0.05;
-            camera.lookAt(0, 0, 0);
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        // App Logic
-        let currentUser = null;
-        let currentChatId = null;
-        let chats = [];
-
-        window.showPage = (id) => {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        };
-
-        window.switchAuthMode = (mode) => {
-            document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-            document.getElementById('loginForm').style.display = mode === 'login' ? 'block' : 'none';
-            document.getElementById('signupForm').style.display = mode === 'signup' ? 'block' : 'none';
-        };
-
-        window.handleEmailLogin = async () => {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            try {
-                const res = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                const data = await res.json();
-                if (data.user) {
-                    currentUser = data.user;
-                    localStorage.setItem('velice_token', data.token);
-                    localStorage.setItem('velice_user', JSON.stringify(data.user));
-                    loadChats();
-                    showPage('chatPage');
-                }
-            } catch (err) {
-                alert('Login failed');
-            }
-        };
-
-        window.handleEmailSignup = async () => {
-            const name = document.getElementById('signupName').value;
-            const email = document.getElementById('signupEmail').value;
-            const password = document.getElementById('signupPassword').value;
-            try {
-                const res = await fetch('/api/auth/signup', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, email, password })
-                });
-                const data = await res.json();
-                if (data.user) {
-                    currentUser = data.user;
-                    localStorage.setItem('velice_token', data.token);
-                    localStorage.setItem('velice_user', JSON.stringify(data.user));
-                    newChat();
-                    showPage('chatPage');
-                }
-            } catch (err) {
-                alert('Signup failed');
-            }
-        };
-
-        window.sendMessage = async () => {
-            const input = document.getElementById('msgInput');
-            const text = input.value.trim();
-            if (!text) return;
-
-            const chat = getCurrentChat();
-            if (!chat) newChat();
-
-            addMessage('user', text);
-            input.value = '';
-            showTyping();
-
-            try {
-                const res = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('velice_token')}`
-                    },
-                    body: JSON.stringify({ message: text, chatId: currentChatId })
-                });
-                const data = await res.json();
-                hideTyping();
-                addMessage('assistant', data.response);
-            } catch (err) {
-                hideTyping();
-                alert('Error');
-            }
-        };
-
-        function getCurrentChat() {
-            return chats.find(c => c.id === currentChatId);
-        }
-
-        window.newChat = () => {
-            const chat = { id: Date.now().toString(), title: 'New Chat', messages: [] };
-            chats.unshift(chat);
-            currentChatId = chat.id;
-            saveChats();
-            renderChatList();
-            renderMessages();
-        };
-
-        function loadChats() {
-            const saved = localStorage.getItem('velice_chats');
-            chats = saved ? JSON.parse(saved) : [];
-            if (chats.length === 0) newChat();
-            else {
-                currentChatId = chats[0].id;
-                renderChatList();
-                renderMessages();
-            }
-        }
-
-        function saveChats() {
-            localStorage.setItem('velice_chats', JSON.stringify(chats));
-        }
-
-        function renderChatList() {
-            document.getElementById('chatList').innerHTML = chats.map(c =>
-                `<div class="chat-item ${c.id === currentChatId ? 'active' : ''}" onclick="switchChat('${c.id}')">${c.title}</div>`
-            ).join('');
-        }
-
-        window.switchChat = (id) => {
-            currentChatId = id;
-            renderChatList();
-            renderMessages();
-        };
-
-        function addMessage(role, content) {
-            const chat = getCurrentChat();
-            chat.messages.push({ role, content, timestamp: Date.now() });
-            if (chat.messages.length === 1) chat.title = content.slice(0, 30);
-            saveChats();
-            renderMessages();
-        }
-
-        function renderMessages() {
-            const chat = getCurrentChat();
-            const container = document.getElementById('messages');
-            if (!chat || chat.messages.length === 0) {
-                container.innerHTML = '<div style="text-align:center;padding:4rem;color:var(--text-tertiary)">Start a conversation</div>';
-                return;
-            }
-            container.innerHTML = chat.messages.map(msg => `
-        <div class="message message-${msg.role}">
-          <div class="message-bubble">${formatMsg(msg.content)}</div>
-        </div>
-      `).join('');
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // ══ MESSAGE FORMATTING - UPDATED ══
-        function formatMsg(text) {
-            // Escape HTML first
-            let formatted = text
-                .replace(/&/g, '&amp;')
-                .replace(/</g, '&lt;')
-                .replace(/>/g, '&gt;');
-
-            // Code blocks with language + copy button
-            formatted = formatted.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-                const language = lang || 'text';
-                const codeId = 'code-' + Date.now() + Math.random().toString(36).substr(2, 9);
-                const highlighted = highlightCode(code.trim(), language);
-
-                return `<pre><div class="code-header"><span class="code-lang">${language}</span><button class="copy-btn" onclick="copyCode('${codeId}')">Copy</button></div><code id="${codeId}">${highlighted}</code></pre>`;
-            });
-
-            // Inline code
-            formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-            // Bold
-            formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-            // Italic
-            formatted = formatted.replace(/\*(.*?)\*/g, '<em>$1</em>');
-
-            // Links - auto detect URLs
-            formatted = formatted.replace(
-                /(https?:\/\/[^\s<]+[^<.,:;"')\]\s])/g,
-                '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
-            );
-
-            // Lists
-            formatted = formatted.replace(/^\* (.+)$/gm, '<li>$1</li>');
-            formatted = formatted.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
-            formatted = formatted.replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
-
-            // Blockquotes
-            formatted = formatted.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-
-            // Line breaks
-            formatted = formatted.replace(/\n/g, '<br>');
-
-            return formatted;
-        }
-
-        // ══ SIMPLE SYNTAX HIGHLIGHTER ══
-        function highlightCode(code, lang) {
-            let highlighted = code;
-
-            // Keywords
-            const keywords = ['function', 'const', 'let', 'var', 'if', 'else', 'return', 'import', 'export', 'class', 'async', 'await', 'try', 'catch', 'for', 'while', 'switch', 'case', 'break', 'continue', 'new', 'this', 'super', 'extends', 'static', 'get', 'set'];
-            keywords.forEach(kw => {
-                highlighted = highlighted.replace(new RegExp(`\\b${kw}\\b`, 'g'), `<span class="hljs-keyword">${kw}</span>`);
-            });
-
-            // Strings
-            highlighted = highlighted.replace(/(["'`])(.*?)\1/g, '<span class="hljs-string">$1$2$1</span>');
-
-            // Numbers
-            highlighted = highlighted.replace(/\b(\d+)\b/g, '<span class="hljs-number">$1</span>');
-
-            // Comments
-            highlighted = highlighted.replace(/(\/\/.*$)/gm, '<span class="hljs-comment">$1</span>');
-            highlighted = highlighted.replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="hljs-comment">$1</span>');
-
-            // Functions
-            highlighted = highlighted.replace(/\b(\w+)(?=\s*\()/g, '<span class="hljs-function">$1</span>');
-
-            return highlighted;
-        }
-
-        // ══ COPY CODE FUNCTION ══
-        window.copyCode = function (codeId) {
-            const codeEl = document.getElementById(codeId);
-            const text = codeEl.textContent;
-            const btn = event.target;
-
-            navigator.clipboard.writeText(text).then(() => {
-                btn.textContent = 'Copied!';
-                btn.classList.add('copied');
-                setTimeout(() => {
-                    btn.textContent = 'Copy';
-                    btn.classList.remove('copied');
-                }, 2000);
-            }).catch(() => {
-                toast('Failed to copy');
-            });
-        };
-
-        function showTyping() {
-            const container = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.id = 'typing';
-            div.className = 'message message-ai';
-            div.innerHTML = '<div class="message-bubble">Typing...</div>';
-            container.appendChild(div);
-        }
-
-        function hideTyping() {
-            document.getElementById('typing')?.remove();
-        }
-
-        window.toggleSidebar = () => {
-            document.getElementById('chatSidebar').classList.toggle('open');
-        };
-
-        window.toggleTheme = () => {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('velice_theme', next);
-        };
-
-        // Load theme on start
-        const theme = localStorage.getItem('velice_theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
-
-        // Check auth on load
-        const user = localStorage.getItem('velice_user');
-        if (user) {
-            currentUser = JSON.parse(user);
-            loadChats();
-            showPage('chatPage');
-        }
-
-        // Auto-resize textarea
-        document.getElementById('msgInput')?.addEventListener('input', function () {
-            this.style.height = 'auto';
-            this.style.height = this.scrollHeight + 'px';
-        });
-
-        // Google Sign-In Init
-        window.onload = () => {
-            google.accounts.id.initialize({
-                client_id: '276271803154-ksn2heakd93bcsdr0c2plebeasgkm1s8.apps.googleusercontent.com',
-                callback: handleGoogleLogin
-            });
-            google.accounts.id.renderButton(
-                document.getElementById('googleSignIn'),
-                { theme: 'filled_black', size: 'large', width: 360 }
-            );
-        };
-
-        window.handleGoogleLogin = async (response) => {
-            const payload = JSON.parse(atob(response.credential.split('.')[1]));
-            currentUser = { name: payload.name, email: payload.email, picture: payload.picture };
-            localStorage.setItem('velice_user', JSON.stringify(currentUser));
-
-            // Backend me bhi bhej de
-            try {
-                const res = await fetch('/api/auth/google', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential: response.credential })
-                });
-                const data = await res.json();
-                if (data.token) localStorage.setItem('velice_token', data.token);
-            } catch (err) {
-                console.log('Google auth backend error');
-            }
-
-            newChat();
-            showPage('chatPage');
-        };
-
-
-    </script>
+    <script type="module" src="three-bg.js"></script>
     <script src="app.js"></script>
 </body>
 
