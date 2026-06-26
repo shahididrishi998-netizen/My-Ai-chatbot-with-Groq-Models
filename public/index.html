@@ -1,196 +1,471 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Velice AI - Lightspeed AI Chat</title>
+
     <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-      }
+{
+    "imports":{
+        "three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
     }
+}
+</script>
+
+    <script src="https://accounts.google.com/gsi/client" async defer>
     </script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <link rel="stylesheet" href="index.css">
+
 </head>
 
 <body>
-    <canvas id="bgCanvas" class="bg-canvas"></canvas>
+
+    <canvas id="bgCanvas" class="bg-canvas">
+    </canvas>
+
     <div class="noise"></div>
 
+    <!-- ========================= -->
     <!-- LANDING -->
+    <!-- ========================= -->
+
     <div id="landingPage" class="page active">
+
         <nav class="top-nav">
+
             <div class="brand">
-                <div class="brand-mark">✦</div>
-                <span>Velice AI</span>
+
+                <div class="brand-mark">
+                    ✦
+                </div>
+
+                <span>
+                    Velice AI
+                </span>
+
             </div>
+
             <div class="nav-actions">
-                <button class="btn-nav" onclick="showPage('authPage')">Sign In</button>
+
+                <button type="button" class="btn-nav" onclick="showPage('authPage')">
+
+                    Sign In
+
+                </button>
+
             </div>
+
         </nav>
 
         <section class="hero-section">
+
             <div class="hero-grid">
+
                 <div class="hero-content">
+
                     <div class="status-pill">
+
                         <span class="status-dot"></span>
+
                         Groq LPU Inference · 10x Faster
+
                     </div>
+
                     <h1 class="hero-title">
+
                         Your AI that<br>
-                        <span class="gradient-text">Thinks at Lightspeed</span>
+
+                        <span class="gradient-text">
+
+                            Thinks at Lightspeed
+
+                        </span>
+
                     </h1>
+
                     <p class="hero-subtitle">
-                        Chat with images, generate art, write code, and ship faster. Velice runs on Groq's LPU for
-                        instant responses with zero lag.
+
+                        Chat with images,
+                        generate art,
+                        write code,
+                        and ship faster.
+
+                        Velice runs on Groq's LPU
+                        for instant responses.
+
                     </p>
+
                     <div class="hero-cta">
-                        <button class="btn-hero-primary" onclick="showPage('authPage')">Start Free →</button>
-                        <button class="btn-hero-secondary" onclick="showPage('authPage')">Watch Demo</button>
+
+                        <button type="button" class="btn-hero-primary" onclick="showPage('authPage')">
+
+                            Start Free →
+
+                        </button>
+
+                        <button type="button" class="btn-hero-secondary" onclick="showPage('authPage')">
+
+                            Watch Demo
+
+                        </button>
+
                     </div>
+
                     <div class="metrics">
+
                         <div class="metric">
-                            <div class="metric-value">500ms</div>
-                            <div class="metric-label">Avg Response</div>
+
+                            <div class="metric-value">
+
+                                500ms
+
+                            </div>
+
+                            <div class="metric-label">
+
+                                Avg Response
+
+                            </div>
+
                         </div>
+
                         <div class="metric">
-                            <div class="metric-value">100%</div>
-                            <div class="metric-label">Free Forever</div>
+
+                            <div class="metric-value">
+
+                                100%
+
+                            </div>
+
+                            <div class="metric-label">
+
+                                Free Forever
+
+                            </div>
+
                         </div>
+
                         <div class="metric">
-                            <div class="metric-value">∞</div>
-                            <div class="metric-label">Messages</div>
+
+                            <div class="metric-value">
+
+                                ∞
+
+                            </div>
+
+                            <div class="metric-label">
+
+                                Messages
+
+                            </div>
+
                         </div>
+
                     </div>
+
                 </div>
 
                 <div class="hero-visual">
+
                     <div class="visual-card card-floating-1">
-                        <div class="card-icon">🎨</div>
-                        <div class="card-title">Generate Images</div>
-                        <div class="card-body">Create stunning AI art from text prompts in seconds</div>
+
+                        <div class="card-icon">
+
+                            🎨
+
+                        </div>
+
+                        <div class="card-title">
+
+                            Generate Images
+
+                        </div>
+
+                        <div class="card-body">
+
+                            Create stunning AI art
+                            from text prompts.
+
+                        </div>
+
                     </div>
+
                     <div class="visual-card card-floating-2">
-                        <div class="card-icon">👁️</div>
-                        <div class="card-title">Vision AI</div>
-                        <div class="card-body">Upload images and get instant analysis</div>
+
+                        <div class="card-icon">
+
+                            👁️
+
+                        </div>
+
+                        <div class="card-title">
+
+                            Vision AI
+
+                        </div>
+
+                        <div class="card-body">
+
+                            Upload images and
+                            get instant analysis.
+
+                        </div>
+
                     </div>
+
                     <div class="visual-card card-floating-3">
-                        <div class="card-icon">⚡</div>
-                        <div class="card-title">Instant Code</div>
-                        <div class="card-body">Write, debug, and explain code instantly</div>
+
+                        <div class="card-icon">
+
+                            ⚡
+
+                        </div>
+
+                        <div class="card-title">
+
+                            Instant Code
+
+                        </div>
+
+                        <div class="card-body">
+
+                            Write, debug,
+                            and explain code.
+
+                        </div>
+
                     </div>
+
                 </div>
+
             </div>
+
         </section>
+
     </div>
 
+    <!-- ========================= -->
     <!-- AUTH -->
+    <!-- ========================= -->
+
     <div id="authPage" class="page">
+
         <div class="auth-wrapper">
+
             <div class="auth-card">
-                <button class="back-btn" onclick="showPage('landingPage')">←</button>
+
+                <button type="button" class="back-btn" onclick="showPage('landingPage')">
+
+                    ←
+
+                </button>
+
                 <div class="auth-header">
-                    <div class="auth-logo">✦</div>
-                    <h2 class="auth-title">Welcome to Velice</h2>
-                    <p class="auth-subtitle">Sign in to continue</p>
+
+                    <div class="auth-logo">
+
+                        ✦
+
+                    </div>
+
+                    <h2 class="auth-title">
+
+                        Welcome to Velice
+
+                    </h2>
+
+                    <p class="auth-subtitle">
+
+                        Sign in to continue
+
+                    </p>
+
                 </div>
 
                 <div class="auth-tabs">
-                    <button class="auth-tab active" onclick="switchAuthMode('login')">Login</button>
-                    <button class="auth-tab" onclick="switchAuthMode('signup')">Sign Up</button>
+
+                    <button type="button" class="auth-tab active" onclick="switchAuthMode('login')">
+
+                        Login
+
+                    </button>
+
+                    <button type="button" class="auth-tab" onclick="switchAuthMode('signup')">
+
+                        Sign Up
+
+                    </button>
+
                 </div>
 
                 <div id="loginForm">
-                    <input type="email" id="loginEmail" class="form-input" placeholder="Email">
-                    <input type="password" id="loginPassword" class="form-input" placeholder="Password">
-                    <button class="btn-submit" onclick="handleEmailLogin()">Sign In</button>
+
+                    <input id="loginEmail" class="form-input" type="email" placeholder="Email">
+
+                    <input id="loginPassword" class="form-input" type="password" placeholder="Password">
+
+                    <button type="button" class="btn-submit" onclick="handleEmailLogin()">
+
+                        Sign In
+
+                    </button>
+
                 </div>
 
-                <div id="signupForm" style="display:none">
-                    <input type="text" id="signupName" class="form-input" placeholder="Full Name">
-                    <input type="email" id="signupEmail" class="form-input" placeholder="Email">
-                    <input type="password" id="signupPassword" class="form-input" placeholder="Password">
-                    <button class="btn-submit" onclick="handleEmailSignup()">Create Account</button>
+                <div id="signupForm" style="display:none;">
+
+                    <input id="signupName" class="form-input" type="text" placeholder="Full Name">
+
+                    <input id="signupEmail" class="form-input" type="email" placeholder="Email">
+
+                    <input id="signupPassword" class="form-input" type="password" placeholder="Password">
+
+                    <button type="button" class="btn-submit" onclick="handleEmailSignup()">
+
+                        Create Account
+
+                    </button>
+
                 </div>
 
-                <div class="divider">or</div>
+                <div class="divider">
+
+                    or
+
+                </div>
+
                 <div class="google-auth">
+
                     <div id="g_id_onload"
-                         data-client_id="950532206667-k4rgn6u0ia6l8moh52s7f3t7ecrqv9go.apps.googleusercontent.com"
-                         data-callback="handleGoogleLogin"
-                         data-auto_prompt="false">
+                        data-client_id="950532206667-k4rgn6u0ia6l8moh52s7f3t7ecrqv9go.apps.googleusercontent.com"
+                        data-callback="handleGoogleLogin" data-auto_prompt="false">
+
                     </div>
-                    <div class="g_id_signin"
-                         data-type="standard"
-                         data-size="large"
-                         data-theme="outline"
-                         data-text="continue_with"
-                         data-shape="rectangular"
-                         data-logo_alignment="left">
+
+                    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+                        data-text="continue_with" data-shape="rectangular" data-logo_alignment="left">
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
     </div>
 
-    <!-- CHAT -->
     <div id="chatPage" class="page">
         <aside class="chat-sidebar" id="chatSidebar">
+
             <div class="sidebar-header">
-                <button class="new-chat-btn" onclick="newChat()">+ New Chat</button>
+                <button type="button" class="new-chat-btn" onclick="newChat()">
+                    + New Chat
+                </button>
             </div>
-            <div class="chat-list" id="chatList"></div>
+
+            <div id="chatList" class="chat-list"></div>
+
             <div class="sidebar-footer">
+
                 <div class="profile-dropdown">
-                    <button class="profile-btn-sidebar" onclick="toggleProfileMenu()">
-                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff" alt="Profile">
+
+                    <button type="button" class="profile-btn-sidebar"
+                        onclick="event.stopPropagation();toggleProfileMenu();">
+
+                        <img id="userAvatar" src="https://ui-avatars.com/api/?name=User&background=8B5CF6&color=fff"
+                            alt="User">
+
                         <div class="profile-info-sidebar">
-                            <div class="profile-name-sidebar" id="profileName">User</div>
+                            <div id="profileName" class="profile-name-sidebar">
+                                User
+                            </div>
                         </div>
+
                     </button>
-                    <div class="profile-menu" id="profileMenu">
+
+                    <div id="profileMenu" class="profile-menu" onclick="event.stopPropagation()">
+
                         <div class="profile-info">
-                            <div class="profile-name" id="profileNameFull">User</div>
-                            <div class="profile-email" id="profileEmail">user@email.com</div>
+                            <div id="profileNameFull" class="profile-name">
+                                User
+                            </div>
+
+                            <div id="profileEmail" class="profile-email">
+                                user@email.com
+                            </div>
                         </div>
+
                         <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="changeFont()">
-                            <span>🔤</span> Change Font
+
+                        <button class="menu-item" type="button" onclick="changeFont()">
+                            <span>🔤</span>
+                            Change Font
                         </button>
-                        <button class="menu-item" onclick="toggleTheme()">
-                            <span>🌓</span> Toggle Theme
+
+                        <button class="menu-item" type="button" onclick="toggleTheme()">
+                            <span>🌓</span>
+                            Toggle Theme
                         </button>
+
                         <div class="menu-divider"></div>
-                        <button class="menu-item" onclick="logout()">
-                            <span>🚪</span> Logout
+
+                        <button class="menu-item" type="button" onclick="logout()">
+                            <span>🚪</span>
+                            Logout
                         </button>
+
                     </div>
+
                 </div>
+
             </div>
+
         </aside>
 
         <main class="chat-main">
+
             <header class="chat-header">
-                <button onclick="toggleSidebar()" class="icon-btn">☰</button>
+
+                <button type="button" class="icon-btn" onclick="toggleSidebar()">
+                    ☰
+                </button>
+
                 <div>Velice AI</div>
+
                 <div style="width:36px"></div>
+
             </header>
 
-            <div class="messages-container" id="messages"></div>
+            <div id="messages" class="messages-container"></div>
 
             <div class="input-container">
+
                 <div class="input-wrapper">
-                    <textarea id="msgInput" class="chat-input" placeholder="Message Velice..." rows="1"></textarea>
-                    <button class="send-button" onclick="sendMessage()">↑</button>
+
+                    <textarea id="msgInput" class="chat-input" rows="1" placeholder="Message Velice..."></textarea>
+
+                    <button type="button" class="send-button" onclick="sendMessage()">
+                        ↑
+                    </button>
+
                 </div>
+
             </div>
+
         </main>
+
     </div>
 
     <script type="module" src="three-bg.js"></script>
     <script src="app.js"></script>
+
 </body>
+
 </html>

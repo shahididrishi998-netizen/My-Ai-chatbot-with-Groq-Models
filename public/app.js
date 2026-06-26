@@ -470,6 +470,9 @@ window.newChat = function () {
 
     currentChatId = null;
 
+    document.querySelectorAll(".chat-item")
+        .forEach(item => item.classList.remove("active"));
+
     const container = document.getElementById("messages");
 
     container.innerHTML = `
@@ -479,11 +482,21 @@ window.newChat = function () {
         </div>
     `;
 
-    document
-        .querySelectorAll(".chat-item")
-        .forEach(item => item.classList.remove("active"));
+    const input = document.getElementById("msgInput");
 
-    document.getElementById("msgInput").focus();
+    if (input) {
+
+        input.value = "";
+
+        input.focus();
+
+    }
+
+    if (window.innerWidth < 768) {
+
+        toggleSidebar();
+
+    }
 
 };
 
