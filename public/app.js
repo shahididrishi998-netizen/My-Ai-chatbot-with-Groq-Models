@@ -974,10 +974,10 @@ function formatMsg(text) {
                 .replace(/&gt;/g, ">")
                 .replace(/&amp;/g, "&");
 
-            const safeCode = code
-              .replace(/&/g,"&amp;")
-              .replace(/</g,"&lt;")
-              .replace(/>/g,"&gt;");
+            // const safeCode = code
+            //   .replace(/&/g,"&amp;")
+            //   .replace(/</g,"&lt;")
+            //   .replace(/>/g,"&gt;");
 
             return `
 <pre>
@@ -985,7 +985,7 @@ function formatMsg(text) {
     <span>${lang || "text"}</span>
     <button onclick="copyCode(event,'${id}')">Copy</button>
 </div>
-<code id="${id}">${safeCode}</code>
+<code id="${id}">${decoded}</code>
 </pre>`;
         }
     );
