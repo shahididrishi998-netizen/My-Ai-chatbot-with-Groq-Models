@@ -1009,7 +1009,7 @@ ${code.trim()}
     );
 
     // New Line
-    html=html.replace(/\n/g,"<br>");
+    html=html.replace(/\n/g,"");
 
     return html;
 
