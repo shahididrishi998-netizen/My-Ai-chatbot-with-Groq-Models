@@ -974,6 +974,11 @@ function formatMsg(text) {
                 .replace(/&gt;/g, ">")
                 .replace(/&amp;/g, "&");
 
+            const safe = code
+              .replace(/&/g,"&amp;")
+              .replace(/</g,"&lt;")
+              .replace(/>/g,"&gt;");
+
             return `
 <pre>
 <div class="code-header">
