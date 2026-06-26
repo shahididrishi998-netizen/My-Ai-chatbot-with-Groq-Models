@@ -117,7 +117,12 @@
                 </div>
 
                 <div class="divider">or</div>
-                <div id="googleSignIn"></div>
+                <div class="google-auth">
+                    <div id="g_id_onload" data-client_id="TERA_GOOGLE_CLIENT_ID" data-callback="handleGoogleLogin">
+                    </div>
+                    <div class="g_id_signin" data-type="standard"></div>
+                </div>
+                <script src="https://accounts.google.com/gsi/client" async defer></script>
             </div>
         </div>
     </div>
@@ -529,7 +534,7 @@
             showPage('chatPage');
         };
 
-        
+
     </script>
     <script src="app.js"></script>
 </body>

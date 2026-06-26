@@ -478,3 +478,25 @@ async function deleteAllChats() {
     console.error(err);
   }
 }
+
+async function handleGoogleLogin(response) {
+  try {
+    const res = await fetch('/api/auth/google', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential: response.credential })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      showChatPage();
+      loadUserChats();
+    } else {
+      toast(data.error || 'Google login failed');
+    }
+  } catch (err) {
+    toast('Network error');
+  }
+}
