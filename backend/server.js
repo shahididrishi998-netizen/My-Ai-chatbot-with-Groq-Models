@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const Groq = require("groq-sdk");
+const Groq = require("groq");
 require("dotenv").config({ path: "./api.env" });
 const path = require("path");
 const mongoose = require("mongoose");
