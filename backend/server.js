@@ -1,317 +1,275 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+const Groq = require("groq-sdk");
+require("dotenv").config({ path: "./api.env" });
+const path = require("path");
+const mongoose = require("mongoose");
+const { v4: uuidv4 } = require("uuid");
+const { OAuth2Client } = require("google-auth-library");
+const bcrypt = require("bcryptjs");
 
 const app = express();
+app.use(cors());
+app.use(express.json({ limit: "20mb" }));
+app.use(express.static(path.join(__dirname, "../frontend")));
 
-// ══ CORS + SECURITY HEADERS ══
-app.use(cors({
-  origin: '*',
-  credentials: true
-}));
-app.use((req, res, next) => {
-  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-  // res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
-  next();
-});
-app.use(express.json({ limit: '10mb' }));
+const GOOGLE_CLIENT_ID = "276271803154-ksn2heakd93bcsdr0c2plebeasgkm1s8.apps.googleusercontent.com";
+const googleClient = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-const publicPath = path.join(__dirname, '..', 'public');
-app.use(express.static(publicPath));
+// ── MongoDB ──
+mongoose.connect(process.env.MONGO_URI, { family: 4 })
+  .then(() => console.log("MongoDB connected! ✅"))
+  .catch(err => console.log("MongoDB error:", err.message));
 
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-// ══ MONGODB CONNECT ══
-if (!process.env.MONGODB_URI) {
-  console.error('❌ MONGODB_URI missing in environment variables');
-  process.exit(1);
-}
-
-mongoose.connect(process.env.MONGODB_URI)
-.then(() => console.log('✅ MongoDB Connected'))
-.catch(err => {
-    console.error('❌ MongoDB Error:', err.message);
-    process.exit(1);
-  });
-
-// ══ USER MODEL ══
+// ── Schemas ──
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String },
-  avatar: { type: String, default: '' },
-  googleId: { type: String, default: null },
+  googleId: String,
+  email: { type: String, unique: true },
+  name: String,
+  picture: String,
+  password: String,
   createdAt: { type: Date, default: Date.now }
 });
+const User = mongoose.model("User", userSchema);
 
-const User = mongoose.model('User', userSchema);
-
-// ══ CHAT MODEL ══
 const chatSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  title: { type: String, default: 'New Chat' },
-  messages: [{
-    role: String,
-    content: String,
-    image: String,
-    timestamp: { type: Date, default: Date.now }
-  }],
+  chatId: String,
+  userId: String,
+  title: String,
+  messages: Array,
   createdAt: { type: Date, default: Date.now }
 });
+const Chat = mongoose.model("Chat", chatSchema);
 
-const Chat = mongoose.model('Chat', chatSchema);
-
-// ══ JWT MIDDLEWARE ══
-const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'No token provided' });
-
+// ── Google Auth ──
+app.post("/auth/google", async (req, res) => {
+  const { credential } = req.body;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.userId = decoded.userId;
-    next();
+    const ticket = await googleClient.verifyIdToken({ idToken: credential, audience: GOOGLE_CLIENT_ID });
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+    let user = await User.findOne({ googleId });
+    if (!user) user = await User.create({ googleId, email, name, picture });
+    res.json({ success: true, user: { id: user._id, googleId, email, name, picture } });
   } catch (err) {
-    res.status(401).json({ error: 'Invalid token' });
-  }
-};
-
-// ══ AUTH ROUTES ══
-app.post('/api/auth/signup', async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name ||!email ||!password) {
-    return res.status(400).json({ error: 'All fields required' });
-  }
-
-  try {
-    const existing = await User.findOne({ email });
-    if (existing) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await User.create({
-      name,
-      email,
-      password: hashedPassword
-    });
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({
-      user: { id: user._id, name: user.name, email: user.email },
-      token
-    });
-
-  } catch (err) {
-    console.error('Signup Error:', err);
-    res.status(500).json({ error: 'Signup failed' });
+    res.status(401).json({ error: "Invalid Google token" });
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email ||!password) {
-    return res.status(400).json({ error: 'Email and password required' });
+// ── Email Signup ──
+app.post("/auth/signup", async (req, res) => {
+  const { name, email, password } = req.body;
+  try {
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(400).json({ error: "Email already registered." });
+    const hashed = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, password: hashed });
+    res.json({ success: true, user: { id: user._id, name, email, picture: null } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+});
 
+// ── Email Login ──
+app.post("/auth/login", async (req, res) => {
+  const { email, password } = req.body;
   try {
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-
-    if (!user.password) {
-      return res.status(400).json({ error: 'Use Google login for this account' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ error: 'Invalid password' });
-    }
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({
-      user: { id: user._id, name: user.name, email: user.email },
-      token
-    });
-
+    if (!user || !user.password) return res.status(401).json({ error: "Invalid email or password." });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: "Invalid email or password." });
+    res.json({ success: true, user: { id: user._id, name: user.name, email, picture: user.picture } });
   } catch (err) {
-    console.error('Login Error:', err);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ══ GOOGLE LOGIN ══
-// ══ GOOGLE LOGIN ══
-app.post('/api/auth/google', async (req, res) => {
-  const { credential } = req.body;
-
-  console.log('Google Auth Request:', { credential: credential ? 'Present' : 'Missing' });
-
-  if (!credential) {
-    return res.status(400).json({ error: 'No credential provided' });
-  }
-
-  if (!process.env.GOOGLE_CLIENT_ID) {
-    console.error('GOOGLE_CLIENT_ID missing in env');
-    return res.status(500).json({ error: 'Server configuration error' });
-  }
-
+// ── Chat Routes ──
+app.post("/chat/new", async (req, res) => {
   try {
-    const ticket = await googleClient.verifyIdToken({
-      idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID
-    });
-
-    const payload = ticket.getPayload();
-    console.log('Google payload:', payload.email);
-    
-    const { sub: googleId, email, name, picture } = payload;
-
-    let user = await User.findOne({ email });
-
-    if (!user) {
-      user = await User.create({
-        name,
-        email,
-        googleId,
-        avatar: picture,
-        password: null
-      });
-      console.log('New user created:', email);
-    } else if (!user.googleId) {
-      user.googleId = googleId;
-      user.avatar = picture;
-      await user.save();
-      console.log('Existing user updated:', email);
-    }
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    res.json({
-      user: { 
-        id: user._id, 
-        name: user.name, 
-        email: user.email, 
-        avatar: user.avatar 
-      },
-      token
-    });
-
+    const { userId } = req.body;
+    const chatId = uuidv4();
+    await Chat.create({ chatId, userId, title: "New Chat", messages: [] });
+    res.json({ chatId });
   } catch (err) {
-    console.error('Google Auth Error:', err.message);
-    res.status(400).json({ error: 'Google authentication failed: ' + err.message });
-  }
-});
-// ══ CHAT ROUTES ══
-app.post('/api/chat', authMiddleware, async (req, res) => {
-  const { message, image, chatId } = req.body;
-
-  if (!message &&!image) {
-    return res.status(400).json({ error: 'Message or image required' });
-  }
-
-  try {
-    const messages = [{ role: 'user', content: message }];
-    if (image) {
-      messages[0].content = [
-        { type: 'text', text: message || 'What is in this image?' },
-        { type: 'image_url', image_url: { url: image } }
-      ];
-    }
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: image? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versatile',
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 2048
-      })
-    });
-
-    const data = await response.json();
-    if (data.error) return res.status(400).json({ error: data.error.message });
-
-    const aiResponse = data.choices[0].message.content;
-
-    let chat;
-    if (chatId) {
-      chat = await Chat.findById(chatId);
-    }
-
-    if (!chat) {
-      chat = await Chat.create({
-        userId: req.userId,
-        title: message.slice(0, 30) + '...',
-        messages: []
-      });
-    }
-
-    chat.messages.push(
-      { role: 'user', content: message, image },
-      { role: 'assistant', content: aiResponse }
-    );
-    await chat.save();
-
-    res.json({ response: aiResponse, chatId: chat._id });
-
-  } catch (error) {
-    console.error('Chat Error:', error);
-    res.status(500).json({ error: 'Failed to get AI response' });
+    res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/api/chats', authMiddleware, async (req, res) => {
+app.post("/chat/save", async (req, res) => {
   try {
-    const chats = await Chat.find({ userId: req.userId })
-   .select('title createdAt messages')
-   .sort({ createdAt: -1 });
+    const { chatId, messages, title } = req.body;
+    await Chat.findOneAndUpdate({ chatId }, { messages, title });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/chat/:chatId", async (req, res) => {
+  try {
+    const chat = await Chat.findOne({ chatId: req.params.chatId });
+    res.json(chat);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/chats/:userId", async (req, res) => {
+  try {
+    const chats = await Chat.find({ userId: req.params.userId })
+      .sort({ createdAt: -1 })
+      .select("chatId title createdAt");
     res.json(chats);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch chats' });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// ══ DELETE SINGLE CHAT ══
-app.delete('/api/chats/:chatId', authMiddleware, async (req, res) => {
+app.delete("/chat/:chatId", async (req, res) => {
   try {
-    const chat = await Chat.findOneAndDelete({
-      _id: req.params.chatId,
-      userId: req.userId
-    });
+    await Chat.findOneAndDelete({ chatId: req.params.chatId });
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    if (!chat) {
-      return res.status(404).json({ error: 'Chat not found' });
+// ── Groq + Vision ──
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+const VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct";
+const TEXT_MODELS = [
+  "llama-3.3-70b-versatile",
+  "llama3-70b-8192",
+  "mixtral-8x7b-32768",
+  "gemma2-9b-it"
+];
+let currentModelIndex = 0;
+
+app.post("/chat", async (req, res) => {
+  const { messages, user, image, imageText } = req.body;
+
+  const systemPrompt = `You are a smart, concise AI assistant and your name is Velice AI.
+${user ? `The user's name is ${user.name} and their email is ${user.email}. Address them by name when appropriate.` : ''}
+- Answer only what is asked. No fluff.
+- Be brief by default. Detail only when asked.
+- For code: clean and working only.
+- For real-time requests (weather, news, prices): 1-2 lines only.
+- If unsure: say "I'm not sure" — never make up facts.
+- Always use markdown for code, tables, and lists.
+- Don't call the user name if user is don't want it. Use only when the user ask to use it or when it's appropriate or asking his name.`;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  try {
+    // ── Vision request (image attached) ──
+    if (image && image.base64) {
+      const visionMessages = [
+        { role: "system", content: systemPrompt },
+        ...messages,
+        {
+          role: "user",
+          content: [
+            { type: "text", text: imageText || "What is in this image? Describe in detail." },
+            { type: "image_url", image_url: { url: `data:${image.type};base64,${image.base64}` } }
+          ]
+        }
+      ];
+
+      const response = await groq.chat.completions.create({
+        model: VISION_MODEL,
+        messages: visionMessages,
+        stream: true,
+        max_tokens: 1024,
+      });
+
+      for await (const chunk of response) {
+        const content = chunk.choices[0]?.delta?.content || "";
+        if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
+      }
+
+      res.write("data: [DONE]\n\n");
+      res.end();
+      return;
     }
 
-    res.json({ message: 'Chat deleted successfully' });
+    // ── Text request ──
+    const finalMessages = [{ role: "system", content: systemPrompt }, ...messages];
+
+    for (let i = 0; i < TEXT_MODELS.length; i++) {
+      const model = TEXT_MODELS[(currentModelIndex + i) % TEXT_MODELS.length];
+      try {
+        const response = await groq.chat.completions.create({
+          model,
+          messages: finalMessages,
+          stream: true,
+        });
+
+        currentModelIndex = (currentModelIndex + 1) % TEXT_MODELS.length;
+
+        for await (const chunk of response) {
+          const content = chunk.choices[0]?.delta?.content || "";
+          if (content) res.write(`data: ${JSON.stringify({ content })}\n\n`);
+        }
+
+        res.write("data: [DONE]\n\n");
+        res.end();
+        return;
+
+      } catch (err) {
+        if (i === TEXT_MODELS.length - 1) {
+          res.write(`data: ${JSON.stringify({ content: "Couldn't generate a response, please try again." })}\n\n`);
+          res.write("data: [DONE]\n\n");
+          res.end();
+        }
+        continue;
+      }
+    }
+
   } catch (err) {
-    console.error('Delete Error:', err);
-    res.status(500).json({ error: 'Failed to delete chat' });
+    res.write(`data: ${JSON.stringify({ content: "Something went wrong. Please try again." })}\n\n`);
+    res.write("data: [DONE]\n\n");
+    res.end();
   }
 });
 
-// ══ FRONTEND ROUTES ══
-app.get('/', (req, res) => {
-  res.sendFile(path.join(publicPath, 'index.html'));
+
+const https = require("https");
+
+app.post("/generate-image", async (req, res) => {
+  const { prompt } = req.body;
+  const body = JSON.stringify({ inputs: prompt, parameters: { num_inference_steps: 4 } });
+
+  const options = {
+    hostname: "api-inference.huggingface.co",
+    path: "/models/black-forest-labs/FLUX.1-schnell",
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${process.env.HF_TOKEN}`,
+      "Content-Type": "application/json",
+      "Content-Length": Buffer.byteLength(body),
+      "x-wait-for-model": "true"
+    }
+  };
+
+  const hfReq = https.request(options, (hfRes) => {
+    if (hfRes.statusCode !== 200) {
+      let errData = '';
+      hfRes.on('data', d => errData += d);
+      hfRes.on('end', () => { console.log("HF Error:", errData); res.status(500).json({ error: errData }); });
+      return;
+    }
+    res.set("Content-Type", "image/jpeg");
+    hfRes.pipe(res);
+  });
+
+  hfReq.on('error', (e) => { console.log("HF req error:", e.message); res.status(500).json({ error: e.message }); });
+  hfReq.write(body);
+  hfReq.end();
 });
 
-// ══ START ══
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Server: http://localhost:${PORT}`);
-  console.log(`🍃 MongoDB: Connected`);
-});
+app.listen(PORT, () => console.log(`Server chal raha hai port ${PORT} pe! 🚀`));
