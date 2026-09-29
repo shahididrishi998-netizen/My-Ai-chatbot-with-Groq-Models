@@ -24,12 +24,7 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
 const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.1-8b-instant";
 const JWT_SECRET = process.env.JWT_SECRET || "dev-only-velice-ai-secret";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
-const MODELS = [
-  "llama-3.3-70b-versatile",
-  "llama3-70b-8192",
-  "mixtral-8x7b-32768",
-  "gemma2-9b-it"
-];
+
 const SYSTEM_PROMPT = [
   "You are Velice Ai, a fast and classy AI assistant.",
   "Reply with short, efficient answers unless the user asks for depth.",
@@ -385,7 +380,7 @@ async function callGroq(messages) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
+      model: GROQ_MODEL,
       messages,
       temperature: 0.35,
       max_tokens: 900
