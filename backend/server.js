@@ -235,7 +235,7 @@ app.post('/api/chat', authMiddleware, async (req, res) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: image? 'llama-3.2-11b-vision-preview' : 'llama-3.3-70b-versatile',
+        model: "openai/gpt-oss-120b",
         messages: messages,
         temperature: 0.7,
         max_tokens: 2048
